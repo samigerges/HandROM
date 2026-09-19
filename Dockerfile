@@ -9,6 +9,7 @@ WORKDIR /app
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         libegl1 \
+        libgl1 \
         libgles2 \
         libglib2.0-0 \
         libgomp1 \
