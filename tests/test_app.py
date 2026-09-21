@@ -135,6 +135,19 @@ def test_missing_pose_validation() -> None:
     assert any("Index maximum-extension" in error.value for error in app.error)
 
 
+def test_failed_result_displays_the_tam_rejection_reason() -> None:
+    app = AppTest.from_file(str(APP_PATH)).run()
+    app.session_state["wizard_step"] = 3
+    app.session_state["analyses"] = []
+    app.session_state["tam_results"] = None
+    app.session_state["tam_error"] = "TAM requires non-Low extension and flexion quality."
+    app.run()
+    assert any(
+        "Reason: TAM requires non-Low extension and flexion quality." in error.value
+        for error in app.error
+    )
+
+
 def test_demo_results_layout_and_actions(monkeypatch) -> None:
     monkeypatch.setenv("HANDROM_DEMO", "1")
     app = AppTest.from_file(str(APP_PATH)).run()

@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 from handrom.data_models import HandSide, QualityLevel
-from handrom.quality import assess_image_quality, repeatability_quality
+from handrom.quality import assess_image_quality, physical_hand_side, repeatability_quality
 
 
 def _landmarks() -> np.ndarray:
@@ -19,7 +19,7 @@ def test_good_textured_image_passes_major_checks() -> None:
         rgb,
         _landmarks(),
         expected_side=HandSide.RIGHT,
-        detected_side=HandSide.RIGHT,
+        detected_side=HandSide.LEFT,
         handedness_confidence=0.95,
     )
     assert result.level is QualityLevel.HIGH
@@ -33,7 +33,7 @@ def test_blur_and_brightness_are_warnings() -> None:
         rgb,
         _landmarks(),
         expected_side=HandSide.RIGHT,
-        detected_side=HandSide.RIGHT,
+        detected_side=HandSide.LEFT,
         handedness_confidence=0.95,
     )
     assert result.level is QualityLevel.MEDIUM
@@ -41,13 +41,18 @@ def test_blur_and_brightness_are_warnings() -> None:
     assert "image_too_dark" in result.warnings
 
 
-def test_mirrored_handedness_validation() -> None:
+def test_unmirrored_handedness_is_swapped() -> None:
+    assert physical_hand_side(HandSide.RIGHT, mirrored=False) is HandSide.LEFT
+    assert physical_hand_side(HandSide.LEFT, mirrored=False) is HandSide.RIGHT
+
+
+def test_mirrored_handedness_is_preserved() -> None:
     rgb = np.full((600, 800, 3), 128, dtype=np.uint8)
     result = assess_image_quality(
         rgb,
         _landmarks(),
         expected_side=HandSide.LEFT,
-        detected_side=HandSide.RIGHT,
+        detected_side=HandSide.LEFT,
         handedness_confidence=0.95,
         mirrored=True,
     )
@@ -62,7 +67,7 @@ def test_clipped_key_landmark_is_low() -> None:
         np.full((600, 800, 3), 128, dtype=np.uint8),
         landmarks,
         expected_side=HandSide.RIGHT,
-        detected_side=HandSide.RIGHT,
+        detected_side=HandSide.LEFT,
         handedness_confidence=0.95,
     )
     assert result.level is QualityLevel.LOW
@@ -83,7 +88,7 @@ def test_target_finger_framing_ignores_other_fingertips() -> None:
         np.full((600, 800, 3), 128, dtype=np.uint8),
         landmarks,
         expected_side=HandSide.RIGHT,
-        detected_side=HandSide.RIGHT,
+        detected_side=HandSide.LEFT,
         handedness_confidence=0.95,
         target_finger="index",
     )

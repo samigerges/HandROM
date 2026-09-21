@@ -21,6 +21,7 @@ SESSION_DEFAULTS: dict[str, object] = {
     "extension_aggregation": None,
     "flexion_aggregation": None,
     "tam_results": None,
+    "tam_error": None,
     "demo_loaded": False,
 }
 

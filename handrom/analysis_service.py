@@ -14,7 +14,7 @@ from handrom.data_models import (
 from handrom.geometry import GeometryError
 from handrom.hand_detector import HandDetectionError, detect_hand
 from handrom.landmark_mapping import FINGER_LANDMARKS
-from handrom.quality import assess_image_quality
+from handrom.quality import assess_image_quality, physical_hand_side
 from handrom.visualization import annotate_image
 
 
@@ -54,9 +54,7 @@ def analyze_validated_image(
             mirrored=mirrored,
             target_finger=target_finger,
         )
-        effective_side = detection.detected_side
-        if mirrored:
-            effective_side = HandSide.LEFT if effective_side is HandSide.RIGHT else HandSide.RIGHT
+        effective_side = physical_hand_side(detection.detected_side, mirrored=mirrored)
         side_matches = effective_side is expected_side
         valid_geometry = all(
             quality.checks.get(check, False)
@@ -75,7 +73,7 @@ def analyze_validated_image(
             quality=quality,
             target_finger=target_finger,
             capture_confirmed=capture_confirmed,
-            detected_side=detection.detected_side,
+            detected_side=effective_side,
             detection_confidence=detection.confidence,
             resolution=(image.width, image.height),
             normalized_landmarks=detection.normalized_landmarks,
@@ -87,7 +85,7 @@ def analyze_validated_image(
             image.rgb,
             detection.normalized_landmarks,
             angles,
-            side=detection.detected_side,
+            side=effective_side,
             pose=pose,
             quality=quality.level,
             target_finger=target_finger,

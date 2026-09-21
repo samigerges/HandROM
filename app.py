@@ -381,8 +381,10 @@ def recompute_results() -> None:
     st.session_state.flexion_aggregation = flexion
     try:
         st.session_state.tam_results = calculate_tam(extension, flexion)
-    except TamCalculationError:
+        st.session_state.tam_error = None
+    except TamCalculationError as exc:
         st.session_state.tam_results = None
+        st.session_state.tam_error = str(exc)
 
 
 def render_measurement_images() -> None:
@@ -480,7 +482,11 @@ def results_screen() -> None:
     st.caption("Estimated total active motion (TAM) with per-photo MCP, PIP, and DIP measurements.")
     tam_results = st.session_state.tam_results
     if tam_results is None:
-        st.error("A result could not be calculated. Review the measurements, then edit the photos.")
+        reason = st.session_state.get("tam_error")
+        message = "A result could not be calculated. Review the measurements, then edit the photos."
+        if reason:
+            message += f" Reason: {reason}"
+        st.error(message)
         render_measurement_images()
         render_results_actions(None)
         return

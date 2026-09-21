@@ -22,6 +22,17 @@ from handrom.data_models import HandSide, QualityAssessment, QualityLevel
 from handrom.landmark_mapping import FINGER_LANDMARKS
 
 
+def physical_hand_side(detected_side: HandSide, *, mirrored: bool) -> HandSide:
+    """Convert MediaPipe's raw handedness label to the photographed physical side.
+
+    MediaPipe assigns handedness assuming selfie-style mirrored input. For normal
+    rear-camera or scanned photographs, its label must therefore be swapped.
+    """
+    if mirrored:
+        return detected_side
+    return HandSide.LEFT if detected_side is HandSide.RIGHT else HandSide.RIGHT
+
+
 def assess_image_quality(
     rgb: np.ndarray,
     normalized_landmarks: ArrayLike | None,
@@ -44,9 +55,7 @@ def assess_image_quality(
     }
     warnings: list[str] = []
 
-    effective_side = detected_side
-    if mirrored:
-        effective_side = HandSide.LEFT if detected_side is HandSide.RIGHT else HandSide.RIGHT
+    effective_side = physical_hand_side(detected_side, mirrored=mirrored)
     checks["expected_hand_side"] = effective_side is expected_side
 
     if not checks["sharpness"]:
