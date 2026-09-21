@@ -26,6 +26,7 @@ from handrom.data_models import (
 )
 from handrom.demo_data import create_demo_analyses
 from handrom.hand_detector import create_hand_landmarker
+from handrom.hand_side import resolve_session_hand_side
 from handrom.image_processing import ImageValidationError, validate_uploaded_file
 from handrom.landmark_mapping import FINGERS
 from handrom.report_generator import generate_pdf_report
@@ -373,23 +374,14 @@ def recompute_results() -> None:
     flexion = aggregate_measurements(analyses, PoseType.FLEXION)
     st.session_state.extension_aggregation = extension
     st.session_state.flexion_aggregation = flexion
-    detected_sides = {
-        item.detected_side
-        for item in analyses
-        if item.valid and item.included and item.detected_side is not None
-    }
-    if len(detected_sides) > 1:
-        st.session_state.hand_side = ""
-        st.session_state.tam_results = None
-        st.session_state.tam_error = (
-            "The uploaded photos were detected as different hands. "
-            "Use extension and flexion photos of the same hand."
-        )
-        return
-    if detected_sides:
-        st.session_state.hand_side = next(iter(detected_sides)).value
-    else:
-        st.session_state.hand_side = ""
+    detected_side, side_disagreement = resolve_session_hand_side(analyses)
+    st.session_state.hand_side = detected_side.value if detected_side is not None else ""
+    st.session_state.hand_side_warning = (
+        "Handedness predictions differed between photos. The displayed hand uses the "
+        "extension-photo prediction; joint-angle calculations still use every included photo."
+        if side_disagreement
+        else None
+    )
     try:
         st.session_state.tam_results = calculate_tam(extension, flexion)
         st.session_state.tam_error = None
@@ -514,6 +506,8 @@ def results_screen() -> None:
         else QualityLevel.MEDIUM
     )
     target_finger = next(iter(tam_results))
+    if st.session_state.get("hand_side_warning"):
+        st.warning(st.session_state.hand_side_warning)
     st.subheader("Measurement KPIs")
     cols = st.columns(5)
     labels_values = [

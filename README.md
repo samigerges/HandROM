@@ -14,7 +14,7 @@ HandROM is **not clinically validated** and makes no accuracy, diagnosis, treatm
 - A one-finger-at-a-time selector with one to three side-view extension photographs and one to three side-view flexion photographs for the selected finger.
 - A responsive avatar-hand pose guide labeled for the selected finger, with separate extension and flexion images for all four fingers.
 - Safe in-memory JPG/JPEG/PNG validation, EXIF correction, metadata removal, and aspect-ratio-preserving inference resize.
-- MediaPipe Tasks Hand Landmarker in `IMAGE` mode with `num_hands=2`, 21 normalized landmarks, 21 world landmarks, and cross-photo handedness consistency validation.
+- MediaPipe Tasks Hand Landmarker in `IMAGE` mode with `num_hands=2`, 21 normalized landmarks, 21 world landmarks, and extension-first automatic handedness with a cross-photo disagreement warning.
 - Target-finger 2D image-plane MCP/PIP/DIP angles with pixel aspect-ratio correction.
 - Image quality, target-chain framing, resolution, blur, brightness, handedness, geometry, and per-finger repeatability checks.
 - Always-visible annotated photo review with MCP, PIP, and DIP values repeated beneath every image.

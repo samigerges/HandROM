@@ -12,6 +12,7 @@ SESSION_DEFAULTS: dict[str, object] = {
     "participant_id": "",
     "session_label": "",
     "hand_side": "",
+    "hand_side_warning": None,
     "selected_finger": "index",
     "mirrored": False,
     "notes": "",
