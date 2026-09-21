@@ -70,6 +70,8 @@ def test_upload_screen_has_simplified_settings_and_per_finger_capture_groups() -
     )
     assert app.session_state["participant_id"].startswith("CASE-")
     assert app.session_state["mirrored"] is False
+    assert not any(field.label == "Hand" for field in app.radio)
+    assert any("Hand side is detected automatically" in message.value for message in app.info)
     captions = {caption.value for caption in app.caption}
     assert any("صوّر إصبعًا واحدًا" in caption for caption in captions)
     assert any(
@@ -119,12 +121,6 @@ def test_upload_screen_has_simplified_settings_and_per_finger_capture_groups() -
             in caption
             for caption in captions
         )
-
-    hand_selector = next(radio for radio in app.radio if radio.label == "Hand")
-    hand_selector.set_value("Left").run()
-    hand_selector = next(radio for radio in app.radio if radio.label == "Hand")
-    assert hand_selector.value == "Left"
-
 
 def test_missing_pose_validation() -> None:
     app = AppTest.from_file(str(APP_PATH)).run()

@@ -37,7 +37,7 @@ def assess_image_quality(
     rgb: np.ndarray,
     normalized_landmarks: ArrayLike | None,
     *,
-    expected_side: HandSide,
+    expected_side: HandSide | None,
     detected_side: HandSide,
     handedness_confidence: float,
     mirrored: bool = False,
@@ -56,7 +56,7 @@ def assess_image_quality(
     warnings: list[str] = []
 
     effective_side = physical_hand_side(detected_side, mirrored=mirrored)
-    checks["expected_hand_side"] = effective_side is expected_side
+    checks["expected_hand_side"] = expected_side is None or effective_side is expected_side
 
     if not checks["sharpness"]:
         warnings.append("blur_detected")
@@ -66,7 +66,7 @@ def assess_image_quality(
         warnings.append("image_too_bright")
     if not checks["handedness_confidence"]:
         warnings.append("low_handedness_confidence")
-    if not checks["expected_hand_side"]:
+    if expected_side is not None and not checks["expected_hand_side"]:
         warnings.append("hand_side_mismatch")
 
     if normalized_landmarks is None:

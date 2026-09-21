@@ -22,7 +22,7 @@ def analyze_validated_image(
     image: ValidatedImage,
     *,
     pose: PoseType,
-    expected_side: HandSide,
+    expected_side: HandSide | None,
     mirrored: bool,
     landmarker: object,
     target_finger: str | None = None,
@@ -55,7 +55,7 @@ def analyze_validated_image(
             target_finger=target_finger,
         )
         effective_side = physical_hand_side(detection.detected_side, mirrored=mirrored)
-        side_matches = effective_side is expected_side
+        side_matches = expected_side is None or effective_side is expected_side
         valid_geometry = all(
             quality.checks.get(check, False)
             for check in ("resolution", "landmarks_complete", "framing", "hand_size")
@@ -79,7 +79,7 @@ def analyze_validated_image(
             normalized_landmarks=detection.normalized_landmarks,
             world_landmarks=detection.world_landmarks,
             original_rgb=image.rgb,
-            side_confirmed=side_matches,
+            side_confirmed=expected_side is not None and side_matches,
         )
         analysis.annotated_png = annotate_image(
             image.rgb,

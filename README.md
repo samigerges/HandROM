@@ -10,11 +10,11 @@ HandROM is **not clinically validated** and makes no accuracy, diagnosis, treatm
 
 - Three-step clinician workflow: Welcome, Upload, Results and Export.
 - Streamlined start and upload screens with an automatically generated internal anonymous case ID.
-- One selected left or right hand; no healthy-hand upload or contralateral comparison.
+- Automatic left/right hand detection from normal, unmirrored photographs; no healthy-hand upload or contralateral comparison.
 - A one-finger-at-a-time selector with one to three side-view extension photographs and one to three side-view flexion photographs for the selected finger.
 - A responsive avatar-hand pose guide labeled for the selected finger, with separate extension and flexion images for all four fingers.
 - Safe in-memory JPG/JPEG/PNG validation, EXIF correction, metadata removal, and aspect-ratio-preserving inference resize.
-- MediaPipe Tasks Hand Landmarker in `IMAGE` mode with `num_hands=2`, 21 normalized landmarks, 21 world landmarks, and handedness validation.
+- MediaPipe Tasks Hand Landmarker in `IMAGE` mode with `num_hands=2`, 21 normalized landmarks, 21 world landmarks, and cross-photo handedness consistency validation.
 - Target-finger 2D image-plane MCP/PIP/DIP angles with pixel aspect-ratio correction.
 - Image quality, target-chain framing, resolution, blur, brightness, handedness, geometry, and per-finger repeatability checks.
 - Always-visible annotated photo review with MCP, PIP, and DIP values repeated beneath every image.
@@ -157,7 +157,7 @@ Support the forearm while leaving the hand free to move. Keep the wrist neutral.
 
 For maximum active extension, straighten the selected finger without pressing it against a table; move the other fingers away or gently flex them. For maximum active flexion, bend the selected finger fully while keeping the thumb and other fingers away. If the fingertip is hidden, rotate the camera or hand only 10–15° rather than reducing flexion.
 
-For a right hand, photograph index and middle mainly from the thumb side and ring and little mainly from the little-finger side. Reverse the physical hand orientation for a left hand, not the calculation logic. Reject or replace photographs with overlap, hidden target joints, cropped wrist/tip, visible wrist flexion/extension, strong foreshortening, target landmarks outside the visible finger, or substantially different extension/flexion camera angles. Because MediaPipe does not expose dependable target-joint visibility, the app requires the operator to confirm these acceptance checks and then provides a target-only landmark overlay for review.
+For a right hand, photograph index and middle mainly from the thumb side and ring and little mainly from the little-finger side. Reverse the physical hand orientation for a left hand, not the calculation logic. Use normal, unmirrored rear-camera photographs because physical handedness cannot be recovered reliably from a mirrored image without that capture context. Reject or replace photographs with overlap, hidden target joints, cropped wrist/tip, visible wrist flexion/extension, strong foreshortening, target landmarks outside the visible finger, or substantially different extension/flexion camera angles. Because MediaPipe does not expose dependable target-joint visibility, the app provides a target-only landmark overlay for operator review.
 
 ## Image validation and privacy
 

@@ -60,6 +60,18 @@ def test_mirrored_handedness_is_preserved() -> None:
     assert "hand_side_mismatch" not in result.warnings
 
 
+def test_automatic_hand_detection_does_not_require_an_expected_side() -> None:
+    result = assess_image_quality(
+        np.full((600, 800, 3), 128, dtype=np.uint8),
+        _landmarks(),
+        expected_side=None,
+        detected_side=HandSide.RIGHT,
+        handedness_confidence=0.95,
+    )
+    assert result.checks["expected_hand_side"]
+    assert "hand_side_mismatch" not in result.warnings
+
+
 def test_clipped_key_landmark_is_low() -> None:
     landmarks = _landmarks()
     landmarks[0, 0] = 0.001

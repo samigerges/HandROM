@@ -123,12 +123,12 @@ def welcome_screen() -> None:
     st.title("🖐️ HandROM")
     st.subheader("Estimate motion one finger at a time")
     st.caption(
-        "Choose the hand and one target finger, capture side-view extension and flexion, then review and export the estimate."
+        "Choose one target finger, capture side-view extension and flexion, then review the automatically detected hand and motion estimate."
     )
     cols = st.columns(3)
     with cols[0]:
         st.markdown(
-            '<div class="status-card"><b>1. Choose</b><br>Pick the hand and case ID.</div>',
+            '<div class="status-card"><b>1. Choose</b><br>Pick the target finger.</div>',
             unsafe_allow_html=True,
         )
     with cols[1]:
@@ -207,26 +207,20 @@ def _view_instruction(finger: str) -> str:
 def upload_screen() -> None:
     st.title("New measurement")
     st.caption("Capture one target finger at a time from the side.")
-    if "hand_side_input_v2" not in st.session_state:
-        st.session_state.hand_side_input_v2 = st.session_state.hand_side
     if "selected_finger_input_v4" not in st.session_state:
         st.session_state.selected_finger_input_v4 = st.session_state.selected_finger
-    settings = st.columns(2)
-    settings[0].radio(
-        "Hand",
-        [HandSide.LEFT.value, HandSide.RIGHT.value],
-        horizontal=True,
-        key="hand_side_input_v2",
-    )
-    settings[1].selectbox(
+    st.selectbox(
         "Finger to measure",
         FINGERS,
         format_func=str.title,
         key="selected_finger_input_v4",
     )
-    st.session_state.hand_side = st.session_state.hand_side_input_v2
     st.session_state.mirrored = False
     st.session_state.selected_finger = st.session_state.selected_finger_input_v4
+    st.info(
+        "Hand side is detected automatically. Use normal, unmirrored rear-camera photos; "
+        "mirrored selfie images are not supported."
+    )
     st.caption(f"Session {st.session_state.session_id[:8]} · HandROM {APP_VERSION}")
     finger = st.session_state.selected_finger
     render_avatar_hand_guide(finger)
@@ -328,7 +322,7 @@ def _analyze_uploads(
             analysis = analyze_validated_image(
                 image,
                 pose=pose,
-                expected_side=HandSide(st.session_state.hand_side),
+                expected_side=None,
                 mirrored=bool(st.session_state.mirrored),
                 landmarker=landmarker,
                 target_finger=finger,
@@ -379,6 +373,23 @@ def recompute_results() -> None:
     flexion = aggregate_measurements(analyses, PoseType.FLEXION)
     st.session_state.extension_aggregation = extension
     st.session_state.flexion_aggregation = flexion
+    detected_sides = {
+        item.detected_side
+        for item in analyses
+        if item.valid and item.included and item.detected_side is not None
+    }
+    if len(detected_sides) > 1:
+        st.session_state.hand_side = ""
+        st.session_state.tam_results = None
+        st.session_state.tam_error = (
+            "The uploaded photos were detected as different hands. "
+            "Use extension and flexion photos of the same hand."
+        )
+        return
+    if detected_sides:
+        st.session_state.hand_side = next(iter(detected_sides)).value
+    else:
+        st.session_state.hand_side = ""
     try:
         st.session_state.tam_results = calculate_tam(extension, flexion)
         st.session_state.tam_error = None
@@ -417,7 +428,12 @@ def render_measurement_images() -> None:
                     column.metric(joint.upper(), display_value)
 
                 status = "Included" if analysis.included else "Not included"
-                st.caption(f"{status} · {analysis.quality.level.value} quality")
+                detected_hand = (
+                    f" · Detected {analysis.detected_side.value} hand"
+                    if analysis.detected_side is not None
+                    else ""
+                )
+                st.caption(f"{status} · {analysis.quality.level.value} quality{detected_hand}")
                 if analysis.error:
                     st.error(analysis.error)
                 elif analysis.quality.warnings:
@@ -501,7 +517,7 @@ def results_screen() -> None:
     st.subheader("Measurement KPIs")
     cols = st.columns(5)
     labels_values = [
-        ("Selected hand", st.session_state.hand_side),
+        ("Detected hand", st.session_state.hand_side),
         ("Target finger", target_finger.title()),
         ("Included extension images", str(extension.valid_image_count)),
         ("Included flexion images", str(flexion.valid_image_count)),
